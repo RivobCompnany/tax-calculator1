@@ -5,6 +5,7 @@ const nextConfig = {
     unoptimized: true,
   },
   basePath: "/tax-calculator1",
+  trailingSlash: true,
 };
 
 module.exports = nextConfig;
