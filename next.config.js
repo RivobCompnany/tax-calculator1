@@ -1,14 +1,10 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "export", // enable static export on next build
-  // optional: trailingSlash: true,
-};
-
-const repoName = "tax-calculator";
-module.exports = {
-  basePath: `/${repoName}`,
-  assetPrefix: `/${repoName}/`,
-  trailingSlash: true,
+  output: "export",
+  images: {
+    unoptimized: true,
+  },
+  basePath: "/tax-calculator1",
 };
 
 module.exports = nextConfig;
