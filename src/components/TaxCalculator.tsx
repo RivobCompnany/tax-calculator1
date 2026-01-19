@@ -44,6 +44,21 @@ export default function TaxCalculator() {
   const [ctcError, setCtcError] = useState<string>("");
   const copyTimeoutRef = useRef<number | null>(null);
 
+  // Use env var with fallback to Render backend
+  const API_URL =
+    process.env.NEXT_PUBLIC_API_URL ||
+    "https://tax-calculator-flaskbackend.onrender.com/api";
+
+  // New helper (uses /api/calculate)
+  async function calculateTax(income: number) {
+    const response = await fetch(`${API_URL}/calculate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ income }),
+    });
+    return await response.json();
+  }
+
   useEffect(() => {
     return () => {
       if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
@@ -72,30 +87,19 @@ export default function TaxCalculator() {
 
     setLoading(true);
     try {
-      // Use environment variable (fallback to localhost:8000)
-      const url = "/calculate-tax";
-      const response = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ctc_annual: ctcAnnual,
-          travel_allowance_annual: travelAllowance,
-          pension_perc: pensionPerc / 100,
-          num_dependants: dependants,
-        }),
-      });
+      // call helper that posts { income } to the Render backend
+      const data = await calculateTax(ctcAnnual);
 
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Backend error ${response.status}: ${text}`);
+      // handle non-OK responses from calculateTax helper
+      if ((data && data.error) || !data) {
+        throw new Error(JSON.stringify(data));
       }
 
-      const data = await response.json();
       setResult(data);
     } catch (e) {
       console.error(e);
       alert(
-        "Calculation failed. Ensure the Flask backend is running (http://localhost:8000) and CORS is enabled."
+        "Calculation failed. Ensure the Flask backend is reachable and CORS is enabled."
       );
     } finally {
       setLoading(false);
